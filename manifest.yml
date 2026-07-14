@@ -2,7 +2,7 @@ id: classisland.plugin.ratelimit
 name: 限频规则
 description: 限制一个自动化在一定时间内的最多运行次数。支持时间间隔、时间点、一天中时间段三种触发模式。
 entranceAssembly: "ClassIsland.RateLimit.dll"
-url: https://github.com/ywydog/ClassIsland.RateLimit
+url: https://github.com/ywydog/RateLimit
 apiVersion: 2.0.0.0
 version: 1.0.0.0
 author: ywydog
