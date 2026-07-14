@@ -7,7 +7,7 @@ namespace ClassIsland.RateLimit.Models;
 /// <summary>
 /// 限频规则设置基类。三个模式各自有派生类，共享最大次数、时间窗口、缓存的工作流 GUID。
 /// </summary>
-public abstract class RateLimitBaseSettings : ObservableObject
+public abstract partial class RateLimitBaseSettings : ObservableObject
 {
     /// <summary>
     /// 时间窗口内允许的最大执行次数。

@@ -1,4 +1,5 @@
 using ClassIsland.Core.Abstractions;
+using ClassIsland.Core.Attributes;
 using ClassIsland.Core.Extensions.Registry;
 using ClassIsland.RateLimit.Controls;
 using ClassIsland.RateLimit.Models;
