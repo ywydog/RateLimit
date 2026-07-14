@@ -1,6 +1,6 @@
 using System.Text.Json;
-using ClassIsland.Core.Abstractions.Services;
 using ClassIsland.Core.Models.Automation;
+using ClassIsland.Core.Services;
 using ClassIsland.RateLimit.Models;
 using Microsoft.Extensions.Logging;
 

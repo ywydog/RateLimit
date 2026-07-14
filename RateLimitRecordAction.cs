@@ -2,6 +2,7 @@ using ClassIsland.Core.Abstractions.Automation;
 using ClassIsland.Core.Attributes;
 using ClassIsland.RateLimit.Services;
 using ClassIsland.Shared;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ClassIsland.RateLimit;
 
