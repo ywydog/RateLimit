@@ -22,4 +22,6 @@ public partial class IntervalRateLimitSettings : RateLimitBaseSettings
         var last = history[^1];
         return (now - last).TotalSeconds >= IntervalSeconds;
     }
+
+    internal override string ModeName => "时间间隔";
 }

@@ -36,4 +36,9 @@ public abstract partial class RateLimitBaseSettings : ObservableObject
     /// <param name="workflowId">本 settings 所属工作流 GUID。</param>
     /// <param name="service">服务实例，供派生类加载历史使用。</param>
     internal abstract bool IsInMode(DateTime now, Guid workflowId, RateLimitService service);
+
+    /// <summary>
+    /// 人类可读的模式名（日志/调试用）。如"时间间隔"、"时间点"、"时间段"。
+    /// </summary>
+    internal abstract string ModeName { get; }
 }

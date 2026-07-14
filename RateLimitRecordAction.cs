@@ -3,6 +3,7 @@ using ClassIsland.Core.Attributes;
 using ClassIsland.RateLimit.Services;
 using ClassIsland.Shared;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ClassIsland.RateLimit;
 
@@ -13,11 +14,25 @@ namespace ClassIsland.RateLimit;
 [ActionInfo(Plugin.RecordActionId, "记录限频执行", "\uE916", addDefaultToMenu: false)]
 public class RateLimitRecordAction : ActionBase
 {
+    private readonly ILogger<RateLimitRecordAction> _logger;
+
+    public RateLimitRecordAction(ILogger<RateLimitRecordAction> logger)
+    {
+        _logger = logger;
+    }
+
     protected override async Task OnInvoke()
     {
         await base.OnInvoke();
         var service = IAppHost.Host?.Services.GetService<IRateLimitService>();
+        if (service is null)
+        {
+            _logger.LogError("RecordAction：无法解析 IRateLimitService，本次执行未记录。");
+            return;
+        }
+
         var workflowId = ActionSet.Guid;
-        service?.Record(workflowId, DateTime.Now);
+        service.Record(workflowId, DateTime.Now);
+        _logger.LogDebug("RecordAction：已通知服务记录一次执行。工作流={WorkflowId}", workflowId);
     }
 }

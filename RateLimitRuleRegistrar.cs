@@ -28,16 +28,20 @@ public class RateLimitRuleRegistrar : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
+        var ruleIds = new[] { Plugin.IntervalRuleId, Plugin.TimePointRuleId, Plugin.TimeRangeRuleId };
         try
         {
-            _rulesetService.RegisterRuleHandler(Plugin.IntervalRuleId, Handle);
-            _rulesetService.RegisterRuleHandler(Plugin.TimePointRuleId, Handle);
-            _rulesetService.RegisterRuleHandler(Plugin.TimeRangeRuleId, Handle);
-            _logger.LogInformation("已注册三个限频规则处理函数。");
+            foreach (var id in ruleIds)
+            {
+                _rulesetService.RegisterRuleHandler(id, Handle);
+            }
+            _logger.LogInformation("已注册 {Count} 个限频规则处理函数：{Rules}",
+                ruleIds.Length, string.Join(", ", ruleIds));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "注册限频规则处理函数失败。");
+            _logger.LogError(ex, "注册限频规则处理函数失败。期望注册的规则：{Rules}",
+                string.Join(", ", ruleIds));
         }
         return Task.CompletedTask;
     }
@@ -48,8 +52,15 @@ public class RateLimitRuleRegistrar : IHostedService
     {
         if (rawSettings is not RateLimitBaseSettings settings)
         {
+            _logger.LogWarning(
+                "收到非 RateLimitBaseSettings 类型的 settings（实际类型：{Type}），按放行处理。",
+                rawSettings?.GetType().FullName ?? "<null>");
             return true;
         }
-        return _rateLimitService.CanExecute(settings, DateTime.Now);
+        var allowed = _rateLimitService.CanExecute(settings, DateTime.Now);
+        _logger.LogDebug(
+            "限频规则 Handle 调用：模式={Mode}，结果={Result}",
+            settings.ModeName, allowed ? "放行" : "拦截");
+        return allowed;
     }
 }

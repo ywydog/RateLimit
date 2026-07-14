@@ -36,47 +36,84 @@ public class RateLimitService : IRateLimitService
     {
         _logger = logger;
         _automationService = automationService;
+        _logger.LogInformation("RateLimitService 已实例化。");
     }
 
     public bool CanExecute(RateLimitBaseSettings settings, DateTime now)
     {
         var workflowId = ResolveWorkflowId(settings);
-        if (workflowId == Guid.Empty) return true; // 找不到所属工作流时默认放行
+        if (workflowId == Guid.Empty)
+        {
+            _logger.LogWarning(
+                "CanExecute：无法定位 settings 所属工作流（模式={Mode}），默认放行。",
+                settings.ModeName);
+            return true;
+        }
 
         // 模式判断（多态）
-        if (!settings.IsInMode(now, workflowId, this)) return false;
+        if (!settings.IsInMode(now, workflowId, this))
+        {
+            _logger.LogDebug(
+                "限频拦截：当前时间不在模式允许窗口内。模式={Mode}，工作流={WorkflowId}，时间={Now:O}",
+                settings.ModeName, workflowId, now);
+            return false;
+        }
 
         // 限频判断
         var history = LoadHistory(workflowId);
         PruneOldEntries(history, settings.WindowSeconds, now);
 
-        if (history.Count >= settings.MaxCount) return false;
+        if (history.Count >= settings.MaxCount)
+        {
+            _logger.LogInformation(
+                "限频拦截：窗口内已执行 {Count}/{Max} 次。模式={Mode}，工作流={WorkflowId}，窗口={Window}s",
+                history.Count, settings.MaxCount, settings.ModeName, workflowId, settings.WindowSeconds);
+            return false;
+        }
 
         // 放行 → 入列
         history.Add(now);
         SaveHistory(workflowId, history);
+        _logger.LogDebug(
+            "限频放行：执行 {Count}/{Max}（+1）。模式={Mode}，工作流={WorkflowId}，时间={Now:O}",
+            history.Count, settings.MaxCount, settings.ModeName, workflowId, now);
         return true;
     }
 
     public void Record(Guid workflowId, DateTime now)
     {
-        if (workflowId == Guid.Empty) return;
+        if (workflowId == Guid.Empty)
+        {
+            _logger.LogWarning("Record：收到 Guid.Empty 工作流，跳过。");
+            return;
+        }
 
         var history = LoadHistory(workflowId);
         // 兜底用 30 天裁剪，避免无主 history 无限增长
         PruneOldEntries(history, FallbackPruneWindowSeconds, now);
         history.Add(now);
         SaveHistory(workflowId, history);
+        _logger.LogDebug(
+            "Record：已记录一次执行（{Count} 条历史保留）。工作流={WorkflowId}，时间={Now:O}",
+            history.Count, workflowId, now);
     }
 
     public void Reset(Guid workflowId)
     {
+        if (workflowId == Guid.Empty)
+        {
+            _logger.LogWarning("Reset：收到 Guid.Empty 工作流，跳过。");
+            return;
+        }
         GlobalStorageService.SetValue(StorageKeyPrefix + workflowId, null);
+        _logger.LogInformation("Reset：已清除工作流限频历史。工作流={WorkflowId}", workflowId);
     }
 
     public int GetCount(Guid workflowId)
     {
-        return LoadHistory(workflowId).Count;
+        var count = LoadHistory(workflowId).Count;
+        _logger.LogDebug("GetCount：工作流={WorkflowId}，当前计数={Count}", workflowId, count);
+        return count;
     }
 
     // ---------- 内部辅助（供派生 settings 调用） ----------
@@ -97,7 +134,13 @@ public class RateLimitService : IRateLimitService
     /// </remarks>
     private Guid ResolveWorkflowId(RateLimitBaseSettings settings)
     {
-        if (settings.CachedWorkflowId is { } cached) return cached;
+        if (settings.CachedWorkflowId is { } cached)
+        {
+            _logger.LogTrace(
+                "ResolveWorkflowId 命中缓存：模式={Mode}，工作流={WorkflowId}",
+                settings.ModeName, cached);
+            return cached;
+        }
 
         // 防御性快照：避免枚举过程中集合被修改
         Workflow[] workflows;
@@ -117,11 +160,17 @@ public class RateLimitService : IRateLimitService
             if (ContainsSettings(wf, settings))
             {
                 settings.CachedWorkflowId = wf.ActionSet.Guid;
+                _logger.LogDebug(
+                    "ResolveWorkflowId 扫描命中：模式={Mode}，工作流={WorkflowId}（共扫 {Scanned} 个工作流）",
+                    settings.ModeName, wf.ActionSet.Guid, workflows.Length);
                 return wf.ActionSet.Guid;
             }
         }
 
         // 未命中：不缓存，下次重试
+        _logger.LogDebug(
+            "ResolveWorkflowId 扫描未命中：模式={Mode}（共扫 {Scanned} 个工作流），下次重试。",
+            settings.ModeName, workflows.Length);
         return Guid.Empty;
     }
 
@@ -149,6 +198,8 @@ public class RateLimitService : IRateLimitService
             }
             catch
             {
+                // 持久化 JSON 损坏时丢弃旧数据，避免持续抛异常阻塞限频判断。
+                // 静默兜底外层不抛；需要排障时打开 [General]Debug 日志级别或自行查看 GlobalStorageService。
                 return new List<DateTime>();
             }
         }

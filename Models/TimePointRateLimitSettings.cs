@@ -24,6 +24,8 @@ public partial class TimePointRateLimitSettings : RateLimitBaseSettings
         return points.Any(p => Math.Abs(p - nowMinutes) <= 1);
     }
 
+    internal override string ModeName => "时间点";
+
     private static List<int> ParseTimePoints(string text)
     {
         var result = new List<int>();

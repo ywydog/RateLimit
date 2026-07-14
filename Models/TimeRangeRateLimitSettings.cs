@@ -50,4 +50,6 @@ public partial class TimeRangeRateLimitSettings : RateLimitBaseSettings
             ? nowMin >= startMin && nowMin <= endMin
             : nowMin >= startMin || nowMin <= endMin; // 跨天
     }
+
+    internal override string ModeName => "时间段";
 }
