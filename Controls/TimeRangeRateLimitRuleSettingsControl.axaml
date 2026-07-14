@@ -1,0 +1,57 @@
+<ci:RuleSettingsControlBase x:TypeArguments="settings:TimeRangeRateLimitSettings"
+    x:Class="ClassIsland.RateLimit.Controls.TimeRangeRateLimitRuleSettingsControl"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ClassIsland.RateLimit.Controls"
+    xmlns:ci="http://classisland.tech/schemas/xaml/core"
+    xmlns:settings="clr-namespace:ClassIsland.RateLimit.Models"
+    xmlns:controls="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia"
+    mc:Ignorable="d"
+    d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:TimeRangeRateLimitRuleSettingsControl}}"
+                Classes="settings-container"
+                Spacing="8">
+
+        <ci:IconText Glyph="&#xE916;" Text="限频：时间段" />
+
+        <ci:Field Label="最大次数">
+            <controls:NumberBox VerticalAlignment="Center"
+                                MinWidth="147"
+                                SpinButtonPlacementMode="Inline"
+                                Minimum="1"
+                                Maximum="999"
+                                Value="{Binding Settings.MaxCount, Converter={x:Static ci:NotNaNConverter.Instance}}" />
+        </ci:Field>
+
+        <ci:Field Label="时间窗口" Suffix="秒">
+            <controls:NumberBox VerticalAlignment="Center"
+                                MinWidth="147"
+                                SpinButtonPlacementMode="Inline"
+                                Minimum="1"
+                                Maximum="86400"
+                                Value="{Binding Settings.WindowSeconds, Converter={x:Static ci:NotNaNConverter.Instance}}" />
+        </ci:Field>
+
+        <Separator Margin="0 4 0 4"/>
+        <ci:IconText Glyph="&#xE1A1;" Text="时间段" />
+
+        <ci:Field Label="开始时间">
+            <TimePicker
+                SelectedTime="{Binding Settings.TimeRangeStart, Mode=TwoWay}"
+                UseSeconds="False" />
+        </ci:Field>
+
+        <ci:Field Label="结束时间">
+            <TimePicker
+                SelectedTime="{Binding Settings.TimeRangeEnd, Mode=TwoWay}"
+                UseSeconds="False" />
+        </ci:Field>
+
+        <TextBlock Classes="l-instructive"
+                   TextWrapping="Wrap"
+                   Text="限频规则：当前时间在 [开始, 结束] 区间内，且时间窗口内执行次数 &lt; 最大次数时放行。支持跨天（如 22:00-06:00）。"/>
+
+    </StackPanel>
+</ci:RuleSettingsControlBase>

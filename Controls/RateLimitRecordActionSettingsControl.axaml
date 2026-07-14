@@ -1,0 +1,19 @@
+<ci:ActionSettingsControlBase xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ci="http://classisland.tech/schemas/xaml/core"
+             xmlns:local="clr-namespace:ClassIsland.RateLimit.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ClassIsland.RateLimit.Controls.RateLimitRecordActionSettingsControl">
+    <StackPanel Spacing="8" Margin="8">
+        <TextBlock Text="本行动无需配置。"
+                   Opacity="0.7"
+                   FontSize="13"/>
+        <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.6">
+            <Run Text="放在工作流的最后执行：调用限频服务为所属工作流记一次执行时间戳。" />
+            <LineBreak/>
+            <Run Text="如果只用了限频规则（未添加本行动），规则放行时也会自动记录。" />
+        </TextBlock>
+    </StackPanel>
+</ci:ActionSettingsControlBase>

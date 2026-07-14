@@ -1,0 +1,17 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+# Cipx package
+*.cipx
+
+# OS
+.DS_Store
+Thumbs.db
