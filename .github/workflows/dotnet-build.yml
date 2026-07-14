@@ -30,4 +30,4 @@ jobs:
         with:
           name: classisland-ratelimit-cipx-artifacts
           path: |
-            D:\a\RateLimit\cipx\ClassIsland.RateLimit.cipx
+            D:\a\RateLimit\RateLimit\cipx\ClassIsland.RateLimit.cipx
