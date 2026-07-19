@@ -3,381 +3,576 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ClassIsland 限频规则插件 · 5 分钟入门教程</title>
+<title>限频规则 · 学报 No.05</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Noto+Serif+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f6f7fb;
-    --card: #ffffff;
-    --ink: #1f2330;
-    --ink-soft: #5b6478;
-    --line: #e6e8ef;
-    --brand: #4a6cf7;
-    --brand-soft: #eef1ff;
-    --a: #16a34a;     /* 时间间隔 - 绿 */
-    --a-soft: #ecfdf3;
-    --b: #ea580c;     /* 时间点 - 橙 */
-    --b-soft: #fff4eb;
-    --c: #9333ea;     /* 时间段 - 紫 */
-    --c-soft: #f7eefe;
-    --warn: #d97706;
-    --shadow: 0 1px 2px rgba(20,24,40,.04), 0 6px 24px rgba(20,24,40,.06);
+    --paper: #f1ead8;          /* 米黄书页 */
+    --paper-deep: #e6dec7;     /* 阴影 / 边线 */
+    --ink: #1a1612;            /* 主文字 */
+    --ink-soft: #5a5246;       /* 次要文字 */
+    --ink-faint: #8a7f6a;      /* 辅助 */
+    --red: #a8202e;            /* 朱红 - 唯一强调色 */
+    --red-soft: #c9525d;
+    --rule: #1a1612;
+    --serif: "Newsreader", "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+    --zh: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+    --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   }
+
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
-    line-height: 1.7; -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--serif); font-size: 17px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 
-  /* Hero */
-  .hero {
-    background: linear-gradient(135deg, #4a6cf7 0%, #7c3aed 100%);
-    color: #fff; border-radius: 20px; padding: 48px 40px; box-shadow: var(--shadow);
+  /* 纸张噪点纹理（SVG 内联，无外部依赖） */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.05 0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.55; mix-blend-mode: multiply;
   }
-  .hero h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: 0.5px; }
-  .hero p { margin: 0; opacity: 0.9; font-size: 16px; }
-  .hero .tag {
-    display: inline-block; background: rgba(255,255,255,.18); padding: 4px 12px;
-    border-radius: 999px; font-size: 12px; margin-bottom: 16px; backdrop-filter: blur(6px);
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(60,40,20,0.10) 100%);
   }
-  .hero .meta { margin-top: 24px; font-size: 13px; opacity: 0.85; }
 
-  /* Section */
-  section { margin-top: 32px; }
-  h2 { font-size: 22px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--line); }
-  h3 { font-size: 17px; margin: 24px 0 8px; }
-  p { margin: 8px 0; color: var(--ink); }
-  .muted { color: var(--ink-soft); }
+  .sheet {
+    position: relative; z-index: 2;
+    max-width: 980px; margin: 56px auto 80px; padding: 64px 72px 80px;
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    box-shadow:
+      0 0 0 6px var(--paper),
+      0 0 0 7px var(--ink),
+      18px 18px 0 -3px var(--paper),
+      18px 18px 0 -2px var(--ink);
+  }
+  @media (max-width: 720px) { .sheet { margin: 0; padding: 40px 22px 56px; box-shadow: none; border: 0; } }
+
+  /* ============ 报头 ============ */
+  .masthead {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--serif); font-size: 12px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--ink-soft);
+    padding-bottom: 6px; border-bottom: 1px solid var(--ink);
+  }
+  .masthead .left { font-weight: 500; }
+  .masthead .right { font-style: italic; font-feature-settings: "smcp"; }
+  .masthead .right em { color: var(--red); font-style: normal; font-weight: 600; }
+
+  .subrule {
+    height: 4px; border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    margin-top: 2px;
+  }
+  .subrule.thick {
+    margin-top: 4px; border-top: 3px double var(--ink);
+    height: 0; border-bottom: 0;
+  }
+
+  /* ============ 标题区 ============ */
+  .head {
+    margin: 36px 0 28px;
+    display: grid; grid-template-columns: 1fr 200px; gap: 40px;
+    align-items: end;
+  }
+  @media (max-width: 720px) { .head { grid-template-columns: 1fr; gap: 16px; } }
+  .head h1 {
+    font-family: var(--zh); font-weight: 900; font-size: 56px; line-height: 1.05;
+    margin: 0; letter-spacing: -0.01em; color: var(--ink);
+  }
+  .head h1 .sub {
+    display: block; font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: 26px; color: var(--red); margin-top: 6px; letter-spacing: 0;
+  }
+  .head .meta {
+    border-left: 1px solid var(--ink); padding-left: 16px;
+    font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-soft); line-height: 2;
+  }
+  .head .meta b { color: var(--ink); font-weight: 600; }
+  .head .meta .price {
+    display: inline-block; border: 1px solid var(--ink); padding: 1px 6px;
+    margin-left: 4px; font-family: var(--serif); font-weight: 600;
+  }
+
+  .lede {
+    font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 21px;
+    line-height: 1.5; color: var(--ink); margin: 0 0 8px;
+    padding: 0 0 18px; border-bottom: 1px solid var(--ink);
+    text-indent: 1.4em;
+  }
+  .lede::first-letter {
+    font-family: var(--serif); font-weight: 700; font-style: normal;
+    font-size: 64px; line-height: 0.9; float: left; padding: 6px 8px 0 0; color: var(--red);
+  }
+
+  /* ============ 章节 ============ */
+  section { margin-top: 48px; position: relative; }
+  h2 {
+    font-family: var(--serif); font-weight: 600; font-size: 28px;
+    margin: 0 0 4px; display: flex; align-items: baseline; gap: 14px;
+  }
+  h2 .sec {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    color: var(--red); font-size: 22px;
+  }
+  h2::after {
+    content: ""; flex: 1; height: 1px; background: var(--ink); margin-left: 4px;
+    position: relative; top: -6px;
+  }
+  h3 {
+    font-family: var(--zh); font-weight: 700; font-size: 18px;
+    margin: 28px 0 8px; color: var(--ink);
+  }
+  p { margin: 8px 0; }
+
+  /* 边注 */
+  .marginalia {
+    position: absolute; right: -28px; top: 0; width: 26px;
+    font-family: var(--serif); font-style: italic; font-size: 11px;
+    color: var(--red); writing-mode: vertical-rl; text-orientation: mixed;
+    letter-spacing: 0.04em; line-height: 1.4; text-align: right;
+  }
+  @media (max-width: 980px) { .marginalia { display: none; } }
+
+  /* ============ 内文样式 ============ */
+  .ink-soft { color: var(--ink-soft); }
+  .ink-faint { color: var(--ink-faint); }
+  .red { color: var(--red); }
+  b, strong { font-weight: 700; }
+  em { font-style: italic; }
   code, kbd {
-    font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace;
-    font-size: 13px; background: #eef0f6; padding: 2px 6px; border-radius: 4px; color: #2d3348;
+    font-family: var(--mono); font-size: 0.85em; padding: 1px 5px;
+    background: rgba(26,22,18,0.08); color: var(--ink); border-radius: 0;
   }
   pre {
-    background: #1f2330; color: #e6e8ef; padding: 16px; border-radius: 10px; overflow-x: auto;
-    font-size: 13px; line-height: 1.6;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+    background: transparent; color: var(--ink);
+    padding: 0; margin: 14px 0; border: 0;
   }
-  pre code { background: transparent; color: inherit; padding: 0; }
+  pre code { background: transparent; padding: 0; }
 
-  /* Cards */
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; box-shadow: var(--shadow); }
-  .grid { display: grid; gap: 16px; }
-  .grid-2 { grid-template-columns: repeat(2, 1fr); }
-  .grid-3 { grid-template-columns: repeat(3, 1fr); }
-  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
-
-  /* Mode card */
-  .mode { border-top: 4px solid; }
-  .mode.a { border-color: var(--a); }
-  .mode.b { border-color: var(--b); }
-  .mode.c { border-color: var(--c); }
-  .mode .pill { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 999px; margin-bottom: 6px; }
-  .mode.a .pill { background: var(--a-soft); color: var(--a); }
-  .mode.b .pill { background: var(--b-soft); color: var(--b); }
-  .mode.c .pill { background: var(--c-soft); color: var(--c); }
-  .mode h3 { margin-top: 4px; }
-  .mode .icon { font-size: 24px; vertical-align: middle; margin-right: 6px; }
-
-  /* Steps */
-  .steps { counter-reset: step; list-style: none; padding: 0; }
-  .steps li {
-    counter-increment: step; position: relative; padding: 14px 16px 14px 56px;
-    background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px;
+  /* ============ 场景卡（学报插图）============ */
+  .plate {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+    border: 1px solid var(--ink); margin: 20px 0 8px;
   }
-  .steps li::before {
-    content: counter(step); position: absolute; left: 16px; top: 14px;
-    width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%;
-    background: var(--brand); color: #fff; font-weight: 600; font-size: 14px;
+  @media (max-width: 720px) { .plate { grid-template-columns: 1fr; } }
+  .scene {
+    padding: 22px 20px 18px; border-right: 1px solid var(--ink);
+    background: var(--paper);
   }
-  .steps li b { color: var(--ink); }
-
-  /* Mockup */
-  .mockup {
-    background: #1f2330; color: #d9dcec; border-radius: 12px; padding: 14px 18px;
-    font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px;
-    border: 1px solid #2a2f44;
+  .scene:last-child { border-right: 0; }
+  @media (max-width: 720px) {
+    .scene { border-right: 0; border-bottom: 1px solid var(--ink); }
+    .scene:last-child { border-bottom: 0; }
   }
-  .mockup .row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #2a2f44; }
-  .mockup .row:last-child { border-bottom: 0; }
-  .mockup .label { color: #8a93b2; }
-  .mockup .value { color: #c7d0ff; }
-  .mockup .pill-mini { background: #2a2f44; color: #c7d0ff; padding: 0 8px; border-radius: 999px; font-size: 12px; }
-  .badge { display: inline-block; background: var(--brand-soft); color: var(--brand); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .scene .fig {
+    font-family: var(--serif); font-style: italic; font-size: 10px; letter-spacing: 0.3em;
+    color: var(--red); text-transform: uppercase; margin-bottom: 6px;
+  }
+  .scene h3 {
+    font-family: var(--zh); font-weight: 700; font-size: 18px;
+    margin: 0 0 8px; color: var(--ink);
+  }
+  .scene blockquote {
+    margin: 0 0 10px; padding: 0; font-style: italic; color: var(--ink-soft);
+    font-size: 15px; line-height: 1.5;
+    border-left: 2px solid var(--red); padding-left: 10px;
+  }
+  .scene .anno {
+    font-family: var(--serif); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--ink-faint);
+    border-top: 1px dotted var(--ink-faint); padding-top: 8px; margin-top: 10px;
+  }
+  .figcap {
+    font-family: var(--serif); font-style: italic; font-size: 12px;
+    color: var(--ink-soft); text-align: center; margin: 0 0 28px;
+  }
+  .figcap b { font-style: normal; color: var(--ink); font-weight: 600; }
 
-  /* Scenario */
-  .scenario { background: linear-gradient(135deg, #fff 0%, #fafbff 100%); }
-  .scenario h3 { margin-top: 0; }
-  .scenario .quote { color: var(--ink-soft); font-style: italic; border-left: 3px solid var(--brand); padding-left: 12px; margin: 8px 0; }
+  /* ============ 模式表（用旧式印刷表格）============ */
+  .modes {
+    margin: 24px 0 8px; border: 1px solid var(--ink);
+  }
+  .modes .row {
+    display: grid; grid-template-columns: 60px 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--ink);
+  }
+  .modes .row:last-child { border-bottom: 0; }
+  .modes .row.head { background: var(--ink); color: var(--paper); }
+  .modes .row.head > div {
+    font-family: var(--serif); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; padding: 8px 10px;
+  }
+  .modes .num {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: 32px; color: var(--red); padding: 14px 10px 4px;
+    border-right: 1px solid var(--ink); text-align: center; line-height: 1;
+  }
+  .modes .name {
+    font-family: var(--zh); font-weight: 700; padding: 14px 12px 4px;
+    border-right: 1px solid var(--ink);
+  }
+  .modes .name small {
+    display: block; font-family: var(--serif); font-weight: 400;
+    font-style: italic; font-size: 11px; color: var(--ink-soft);
+    letter-spacing: 0.05em; text-transform: none; margin-top: 2px;
+  }
+  .modes .desc, .modes .fit {
+    padding: 14px 12px 4px; font-size: 14px; line-height: 1.55;
+    border-right: 1px solid var(--ink);
+  }
+  .modes .fit { border-right: 0; }
+  @media (max-width: 720px) {
+    .modes .row { grid-template-columns: 1fr; }
+    .modes .num { border-right: 0; border-bottom: 1px solid var(--ink); padding: 12px; text-align: left; }
+    .modes .name, .modes .desc, .modes .fit { border-right: 0; border-bottom: 1px solid var(--ink); }
+  }
 
-  /* Tips */
-  .tip { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; margin: 12px 0; }
-  .tip b { color: #b45309; }
-  .warn { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 8px; margin: 12px 0; }
-  .warn b { color: #b91c1c; }
+  /* ============ Mockup: 像旧式印刷设定面板 ============ */
+  .panel {
+    border: 1px solid var(--ink);
+    margin: 24px 0 6px;
+    background: var(--paper);
+  }
+  .panel .head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 0; padding: 8px 14px;
+    background: var(--ink); color: var(--paper);
+    font-family: var(--serif); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .panel .head span:last-child { font-style: italic; font-weight: 400; opacity: 0.7; letter-spacing: 0.1em; }
+  .panel table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .panel td { padding: 8px 14px; border-bottom: 1px solid var(--paper-deep); vertical-align: baseline; }
+  .panel tr:last-child td { border-bottom: 0; }
+  .panel td.k { font-family: var(--zh); font-weight: 500; color: var(--ink); width: 38%; }
+  .panel td.v { font-family: var(--mono); font-size: 13px; color: var(--red); font-weight: 500; text-align: right; width: 32%; }
+  .panel td.n { color: var(--ink-soft); font-size: 13px; padding-left: 0; }
+  .panel .figcap { margin: 8px 0 0; padding: 0 14px 10px; text-align: left; }
 
-  /* FAQ */
-  details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 8px; }
-  details[open] { box-shadow: var(--shadow); }
-  details summary { cursor: pointer; font-weight: 600; }
-  details[open] summary { margin-bottom: 8px; }
-  details p { margin: 6px 0; color: var(--ink-soft); }
+  /* ============ 步骤（带装饰编号）============ */
+  ol.steps { counter-reset: stp; list-style: none; padding: 0; margin: 18px 0; }
+  ol.steps li {
+    counter-increment: stp; padding: 14px 0 14px 56px;
+    border-bottom: 1px dotted var(--ink-faint);
+    position: relative;
+  }
+  ol.steps li:last-child { border-bottom: 0; }
+  ol.steps li::before {
+    content: counter(stp, decimal-leading-zero);
+    position: absolute; left: 0; top: 12px;
+    font-family: var(--serif); font-style: italic; font-weight: 600;
+    font-size: 24px; color: var(--red); letter-spacing: 0.02em;
+  }
+  ol.steps li b { font-weight: 700; color: var(--ink); }
 
-  /* TOC */
-  .toc { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; }
-  .toc h3 { margin-top: 0; }
-  .toc ol { margin: 0; padding-left: 20px; }
-  .toc a { color: var(--brand); text-decoration: none; }
-  .toc a:hover { text-decoration: underline; }
+  /* ============ 提示框（学术批注样式）============ */
+  .note {
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 10px 16px; margin: 18px 0;
+    display: grid; grid-template-columns: 60px 1fr; gap: 16px;
+    align-items: baseline;
+  }
+  .note .lbl {
+    font-family: var(--serif); font-style: italic; font-weight: 600;
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--red);
+  }
+  .note p { margin: 0; }
+  .note.warn { background: rgba(168,32,46,0.05); }
+  .note.warn .lbl { color: var(--red); }
+  .note.tip .lbl { color: var(--ink); }
 
-  /* Footer */
-  footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size: 13px; }
-  footer a { color: var(--brand); text-decoration: none; }
+  /* ============ FAQ（书页式折叠）============ */
+  .faq-item {
+    border-top: 1px solid var(--ink); padding: 14px 0;
+  }
+  .faq-item:last-child { border-bottom: 1px solid var(--ink); }
+  .faq-q {
+    cursor: pointer; font-family: var(--zh); font-weight: 700;
+    font-size: 16px; color: var(--ink);
+    list-style: none; display: flex; gap: 14px; align-items: baseline;
+  }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q::before {
+    content: "Q."; font-family: var(--serif); font-style: italic;
+    color: var(--red); font-weight: 600; font-size: 18px;
+  }
+  .faq-a {
+    margin-top: 8px; padding-left: 28px;
+    color: var(--ink-soft); font-size: 15px;
+  }
+  .faq-a p { margin: 6px 0; }
+  details[open] .faq-q { color: var(--red); }
+
+  /* ============ 脚注区 ============ */
+  footer {
+    margin-top: 56px; padding-top: 14px;
+    border-top: 3px double var(--ink);
+    font-family: var(--serif); font-size: 12px; color: var(--ink-soft);
+    display: flex; justify-content: space-between; align-items: baseline;
+    letter-spacing: 0.06em;
+  }
+  footer em { font-style: italic; }
+  footer a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--ink); }
+
+  /* ============ 选择样式 ============ */
+  ::selection { background: var(--red); color: var(--paper); }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="sheet">
 
-  <!-- Hero -->
-  <div class="hero">
-    <div class="tag">ClassIsland 插件教程</div>
-    <h1>限频规则插件 · 5 分钟入门</h1>
-    <p>让你的 ClassIsland 自动化"别太勤快"——每条规则都用大白话讲清楚，看完就能用。</p>
-    <div class="meta">📦 版本 1.0.0 &nbsp;·&nbsp; 🎯 适用于 ClassIsland 2.x &nbsp;·&nbsp; ⏱ 阅读约 5 分钟</div>
+  <!-- 报头 -->
+  <div class="masthead">
+    <div class="left">ClassIsland 插件教程 · 第二期</div>
+    <div class="right">第 <em>05</em> 号 · 限频规则</div>
   </div>
+  <div class="subrule thick"></div>
 
-  <!-- TOC -->
+  <!-- 标题 -->
+  <header class="head">
+    <h1>
+      别响那么勤
+      <span class="sub">— ClassIsland 限频规则五分通</span>
+    </h1>
+    <div class="meta">
+      <div>面向<b>普通同学</b></div>
+      <div>阅读时长 <b>5 分钟</b></div>
+      <div>v1.0 <span class="price">免费</span></div>
+    </div>
+  </header>
+
+  <p class="lede">这是一份给非技术同学的入门指南。它要解决一件简单的事：你装上这个插件之后，能让自己的 ClassIsland 自动化"别太勤快"，限定一段时间内最多跑几次。三种模式、三张示例、七个问答，看完即可上手。</p>
+
+  <!-- 目录 -->
   <section>
-    <div class="toc">
-      <h3>本文目录</h3>
-      <ol>
-        <li><a href="#what">这是什么？</a></li>
-        <li><a href="#scenes">我能用它做什么？</a></li>
-        <li><a href="#install">怎么装？</a></li>
-        <li><a href="#modes">三种规则怎么选？</a></li>
-        <li><a href="#examples">举个栗子 🌰</a></li>
-        <li><a href="#faq">常见问题</a></li>
-      </ol>
-    </div>
+    <h2><span class="sec">§0</span>目录</h2>
+    <ol class="steps" style="counter-reset: stp; list-style: decimal; padding-left: 20px;">
+      <li style="padding-left: 0; border: 0;">这是什么？</li>
+      <li style="padding-left: 0; border: 0;">我能用它做什么？</li>
+      <li style="padding-left: 0; border: 0;">怎么装？</li>
+      <li style="padding-left: 0; border: 0;">三种模式怎么选？</li>
+      <li style="padding-left: 0; border: 0;">举个完整的栗子</li>
+      <li style="padding-left: 0; border: 0;">常见问题</li>
+    </ol>
   </section>
 
-  <!-- 1. What -->
-  <section id="what">
-    <h2>1. 这是什么？</h2>
-    <div class="card">
-      <p>装上这个插件后，你可以在自动化里加一种叫 <b>"限频规则"</b> 的东西。</p>
-      <p>它的作用很简单：</p>
-      <p style="text-align:center; font-size:17px; margin: 18px 0;">
-        🛑 <b>告诉 ClassIsland：「这个自动化别跑太勤，限定时间内最多跑几次」</b>
-      </p>
-      <p>比如上课铃自动化每节课响一次，本来挺好的。但万一你的触发器很敏感，<b>一节课它响 5、6 次</b>，就尴尬了。</p>
-      <p>加了限频规则后，你可以告诉它：<b>"1 节课最多响 2 次"</b>。超了就不响了，下次条件触发再说。</p>
-    </div>
+  <!-- 1 -->
+  <section>
+    <div class="marginalia">在安静的课堂上，沉默比铃响更有用。</div>
+    <h2><span class="sec">§1</span>这是什么？</h2>
+    <p>装上这个插件后，你可以在 ClassIsland 的自动化里加一种叫 <b>「限频规则」</b> 的东西。它做的事情非常直白：</p>
+    <p style="text-align:center; font-size: 22px; font-family: var(--zh); font-weight: 700; margin: 24px 0; color: var(--ink); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 18px 0;">
+      告诉 ClassIsland：「这个自动化，限定时间内最多跑 <span class="red" style="font-size: 28px;">N</span> 次。」
+    </p>
+    <p>比如你的"上课响铃"自动化，触发器设得敏感一点的话，一节课可能响 <b>五六次</b>——这就尴尬了。装上限频规则后，你可以告诉它：</p>
+    <blockquote style="font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--ink); border-left: 3px solid var(--red); padding: 4px 0 4px 16px; margin: 12px 0;">「一节课，最多响 <b>两次</b>。超过就不响，下次再说。」</blockquote>
+    <p>就这样。规则自己会数，自动在合适的时候"闭嘴"。</p>
   </section>
 
-  <!-- 2. Scenes -->
-  <section id="scenes">
-    <h2>2. 我能用它做什么？</h2>
-    <div class="grid grid-2">
-      <div class="card scenario">
-        <h3>🔔 上课铃别太勤</h3>
-        <div class="quote">"上课事件已经触发了，<b>45 分钟内最多响 1 次</b>"</div>
-        <p class="muted">用 <b>时间间隔</b> 模式，触发间隔 45 分钟。</p>
+  <!-- 2 -->
+  <section>
+    <h2><span class="sec">§2</span>我能用它做什么？</h2>
+    <p>下面是四个最常遇到的场景。每个场景告诉你<b>用哪个模式 + 怎么填</b>。具体字段的含义见 <b>§4</b>。</p>
+
+    <div class="plate">
+      <div class="scene">
+        <div class="fig">Fig. 1</div>
+        <h3>上课铃别太勤</h3>
+        <blockquote>"上课事件触发后，<b>45 分钟内</b>最多响 1 次。"</blockquote>
+        <div class="anno">模式 A · 时间间隔</div>
       </div>
-      <div class="card scenario">
-        <h3>⏰ 整点提醒</h3>
-        <div class="quote">"8:00 / 12:00 / 18:00 整点提醒吃饭，<b>1 小时内最多 1 次</b>"</div>
-        <p class="muted">用 <b>时间点</b> 模式，时间点 <code>08:00,12:00,18:00</code>。</p>
+      <div class="scene">
+        <div class="fig">Fig. 2</div>
+        <h3>整点提醒吃饭</h3>
+        <blockquote>"8:00 / 12:00 / 18:00 整点提醒，<b>1 小时内</b>最多 1 次。"</blockquote>
+        <div class="anno">模式 B · 时间点</div>
       </div>
-      <div class="card scenario">
-        <h3>📚 晚自习播报</h3>
-        <div class="quote">"19:00 - 21:30 内最多播报 5 次"</div>
-        <p class="muted">用 <b>时间段</b> 模式，开始 19:00、结束 21:30。</p>
-      </div>
-      <div class="card scenario">
-        <h3>🪟 下课自动开窗</h3>
-        <div class="quote">"下课事件触发后，<b>5 分钟内最多开 1 次窗</b>"</div>
-        <p class="muted">用 <b>时间间隔</b> 模式，触发间隔 5 分钟。</p>
+      <div class="scene">
+        <div class="fig">Fig. 3</div>
+        <h3>晚自习播报</h3>
+        <blockquote>"19:00 ~ 21:30 内最多播报 <b>5 次</b>。"</blockquote>
+        <div class="anno">模式 C · 时间段</div>
       </div>
     </div>
+    <p class="figcap"><b>图 1–3</b> · 三类典型应用场景，分别对应三种模式。</p>
   </section>
 
-  <!-- 3. Install -->
-  <section id="install">
-    <h2>3. 怎么装？</h2>
+  <!-- 3 -->
+  <section>
+    <h2><span class="sec">§3</span>怎么装？</h2>
     <ol class="steps">
       <li>打开 <b>GitHub Releases 页面</b>：
-        <a href="https://github.com/ywydog/RateLimit/releases" target="_blank">https://github.com/ywydog/RateLimit/releases</a>
-        下载最新的 <code>ClassIsland.RateLimit.cipx</code> 文件。
-      </li>
+        <a href="https://github.com/ywydog/RateLimit/releases" style="color:var(--ink); border-bottom: 1px dotted var(--ink);">https://github.com/ywydog/RateLimit/releases</a>，
+        下载最新的 <code>ClassIsland.RateLimit.cipx</code> 文件。</li>
       <li>打开 ClassIsland 主界面 → <b>设置</b> → <b>插件</b> → <b>安装本地插件</b>。</li>
-      <li>选择刚才下载的 <code>.cipx</code> 文件，<b>重启 ClassIsland</b>。</li>
-      <li>打开任一自动化的 <b>规则集</b> 编辑，右键 → 添加规则 → 你能看到三种带"限频"字样的规则。</li>
+      <li>选择刚才下载的 <code>.cipx</code> 文件，<b>重启 ClassIsland</b>（完全退出再打开）。</li>
+      <li>打开任一自动化的 <b>规则集</b> 编辑器，右键 → <b>添加规则</b>，搜"限频"，应该能看到三个。</li>
     </ol>
-    <div class="tip">
-      <b>💡 小贴士：</b>如果你不熟悉 ClassIsland 的规则集怎么用，先去 ClassIsland 官方文档了解下基础概念会更顺。
+    <div class="note tip">
+      <div class="lbl">提示</div>
+      <p>如果你不熟悉 ClassIsland 的规则集怎么用，先去 ClassIsland 官方文档了解下基础概念（什么是规则 / 规则组 / 行动）。</p>
     </div>
   </section>
 
-  <!-- 4. Modes -->
-  <section id="modes">
-    <h2>4. 三种规则怎么选？</h2>
-    <p>三种模式各有各的"专长"，先用一张表对比一下：</p>
+  <!-- 4 -->
+  <section>
+    <h2><span class="sec">§4</span>三种模式怎么选？</h2>
+    <p>三种模式各有各的"专长"。先看一眼总表：</p>
 
-    <div class="grid grid-3" style="margin-top: 16px;">
-      <div class="card mode a">
-        <div class="pill">模式 A</div>
-        <h3><span class="icon">⏱️</span>时间间隔</h3>
-        <p class="muted">每隔一段时间最多跑一次。</p>
-        <p style="margin-top: 8px;"><b>适合：</b>事件触发很频繁、又怕重复响的场景。</p>
+    <div class="modes">
+      <div class="row head">
+        <div></div><div>名称</div><div>触发语义</div><div>适合场景</div>
       </div>
-      <div class="card mode b">
-        <div class="pill">模式 B</div>
-        <h3><span class="icon">📍</span>时间点</h3>
-        <p class="muted">只在固定时刻（08:00、12:00…）生效。</p>
-        <p style="margin-top: 8px;"><b>适合：</b>整点打卡、定时播报。</p>
+      <div class="row">
+        <div class="num">A</div>
+        <div class="name">时间间隔<small>Interval</small></div>
+        <div class="desc">距上次执行 ≥ 触发间隔，且窗口内次数 &lt; 上限，才放行。</div>
+        <div class="fit">事件触发频繁、又怕重复响的场景。</div>
       </div>
-      <div class="card mode c">
-        <div class="pill">模式 C</div>
-        <h3><span class="icon">🌙</span>时间段</h3>
-        <p class="muted">每天某个时段内才生效（支持跨夜）。</p>
-        <p style="margin-top: 8px;"><b>适合：</b>晚自习、上班时间、熄灯前。</p>
+      <div class="row">
+        <div class="num">B</div>
+        <div class="name">时间点<small>Time Point</small></div>
+        <div class="desc">当前时间在配置的某个 HH:mm ± 1 分钟内，才放行。</div>
+        <div class="fit">整点打卡、定时播报。</div>
+      </div>
+      <div class="row">
+        <div class="num">C</div>
+        <div class="name">时间段<small>Time Range</small></div>
+        <div class="desc">当前时间在 [开始, 结束] 区间内（支持跨夜），才放行。</div>
+        <div class="fit">晚自习、上班、熄灯前等场景。</div>
       </div>
     </div>
+    <p class="figcap"><b>表 1</b> · 三种模式对照。</p>
 
-    <h3>模式 A · 时间间隔 —— 详细配置</h3>
-    <div class="card">
-      <p>每条规则都有<b>两个公共字段</b> + <b>一个专属字段</b>：</p>
-      <div class="mockup">
-        <div class="row"><span class="label">最大次数</span><span class="value">3 次（窗口内最多跑几次）</span></div>
-        <div class="row"><span class="label">时间窗口</span><span class="value">600 秒（统计最近 10 分钟）</span></div>
-        <div class="row"><span class="label">触发间隔</span><span class="value">60 秒（距上次执行 ≥ 60s 才放行）</span></div>
-      </div>
-      <p style="margin-top: 12px;">例子：想让"下课响铃" <b>5 分钟内最多 1 次</b>，就这样填：</p>
-      <div class="mockup">
-        <div class="row"><span class="label">最大次数</span><span class="value">1</span></div>
-        <div class="row"><span class="label">时间窗口</span><span class="value">300 秒</span></div>
-        <div class="row"><span class="label">触发间隔</span><span class="value">300 秒</span></div>
-      </div>
-      <p class="muted" style="margin-top: 8px;">→ 效果：每次下课事件触发，先看过去 5 分钟有没有响过；有就跳过、没有才响。</p>
+    <h3>模式 A · 时间间隔 —— 详细字段</h3>
+    <p>每条规则都有<b>两个公共字段</b> + <b>一个专属字段</b>。先看公共：</p>
+    <div class="panel">
+      <div class="head"><span>公共字段</span><span>适用于全部三种模式</span></div>
+      <table>
+        <tr><td class="k">最大次数</td><td class="v">3</td><td class="n">窗口内最多跑几次</td></tr>
+        <tr><td class="k">时间窗口</td><td class="v">600 秒</td><td class="n">统计最近多久的历史</td></tr>
+      </table>
+    </div>
+    <p>模式 A 多了这一项：</p>
+    <div class="panel">
+      <div class="head"><span>模式 A · 专属字段</span><span>时间间隔</span></div>
+      <table>
+        <tr><td class="k">触发间隔</td><td class="v">60 秒</td><td class="n">距上次执行 ≥ 这个值才放行</td></tr>
+      </table>
+      <p class="figcap"><b>表 2</b> · "下课响铃，5 分钟内最多 1 次"的填法：次数=1，窗口=300s，间隔=300s。</p>
     </div>
 
-    <h3>模式 B · 时间点 —— 详细配置</h3>
-    <div class="card">
-      <p>把要触发的<b>时刻</b>写进一个列表，多个用<b>英文逗号</b>分隔：</p>
-      <div class="mockup">
-        <div class="row"><span class="label">最大次数</span><span class="value">2 次（同一时刻段最多响 2 次）</span></div>
-        <div class="row"><span class="label">时间窗口</span><span class="value">60 秒</span></div>
-        <div class="row"><span class="label">时间点</span><span class="value">08:00,12:00,18:00</span></div>
-      </div>
-      <p class="muted" style="margin-top: 8px;">→ 效果：只在 8:00、12:00、18:00 这 3 个时刻的 ± 1 分钟内放行；其他时间一律不响。</p>
-      <div class="tip">
-        <b>📝 时间格式：</b>必须是 <code>HH:mm</code>，比如 <code>08:00</code>、<code>21:30</code>。不写秒。
-      </div>
+    <h3>模式 B · 时间点 —— 详细字段</h3>
+    <p>把要触发的<b>时刻</b>写进一个列表，多个用<b>英文逗号</b>分隔：</p>
+    <div class="panel">
+      <div class="head"><span>模式 B · 专属字段</span><span>时间点</span></div>
+      <table>
+        <tr><td class="k">时间点</td><td class="v">08:00,12:00,18:00</td><td class="n">每个时刻的 ± 1 分钟内都算"命中"</td></tr>
+      </table>
+      <p class="figcap"><b>表 3</b> · 格式必须为 <code>HH:mm</code>，例如 <code>21:30</code>，不写秒。</p>
     </div>
 
-    <h3>模式 C · 时间段 —— 详细配置</h3>
-    <div class="card">
-      <p>直接用时间选择器选开始/结束：</p>
-      <div class="mockup">
-        <div class="row"><span class="label">最大次数</span><span class="value">5 次（整个晚自习最多 5 次）</span></div>
-        <div class="row"><span class="label">时间窗口</span><span class="value">9000 秒（覆盖 2.5 小时）</span></div>
-        <div class="row"><span class="label">开始时间</span><span class="value">19:00</span></div>
-        <div class="row"><span class="label">结束时间</span><span class="value">21:30</span></div>
-      </div>
-      <p class="muted" style="margin-top: 8px;">→ 效果：只在 19:00 ~ 21:30 之间放行；最多 5 次。</p>
-
-      <div class="tip">
-        <b>🌙 跨夜写法：</b>想让"熄灯提醒"在 <b>22:00 到次日 06:00</b> 生效？
-        直接填 <b>开始 22:00、结束 06:00</b>，插件会自动识别为跨夜区间。
-      </div>
+    <h3>模式 C · 时间段 —— 详细字段</h3>
+    <p>用时间选择器选开始 / 结束。开始和结束都可以是任意 <code>HH:mm</code>。</p>
+    <div class="panel">
+      <div class="head"><span>模式 C · 专属字段</span><span>时间段</span></div>
+      <table>
+        <tr><td class="k">开始时间</td><td class="v">19:00</td><td class="n">从这一刻起开始放行</td></tr>
+        <tr><td class="k">结束时间</td><td class="v">21:30</td><td class="n">到这一刻为止放行</td></tr>
+      </table>
+      <p class="figcap"><b>表 4</b> · 想"22:00 到次日 06:00"生效？直接开始=22:00、结束=06:00，插件会自动识别为跨夜。</p>
     </div>
   </section>
 
-  <!-- 5. Examples -->
-  <section id="examples">
-    <h2>5. 举个完整的栗子 🌰</h2>
+  <!-- 5 -->
+  <section>
+    <h2><span class="sec">§5</span>举个完整的栗子</h2>
     <p>假设你想做一个"晚自习提醒喝水"的自动化：</p>
 
-    <div class="card">
-      <h3>目标</h3>
-      <p>晚自习 19:00 ~ 21:30 内，每 <b>30 分钟</b>最多提醒喝水 <b>1 次</b>。</p>
+    <div class="note">
+      <div class="lbl">目标</div>
+      <p>晚自习 <b>19:00 ~ 21:30</b> 内，每 <b>30 分钟</b>最多提醒喝水 <b>1 次</b>。</p>
+    </div>
 
-      <h3>步骤</h3>
-      <ol>
-        <li>新建自动化，触发器选"<b>定时器 / 心跳</b>"（每 1 分钟检查一次）。</li>
-        <li>进入规则集，添加规则：<span class="badge">限频：时间段</span>。
-          <div class="mockup" style="margin-top: 8px;">
-            <div class="row"><span class="label">最大次数</span><span class="value">1</span></div>
-            <div class="row"><span class="label">时间窗口</span><span class="value">1800 秒 (30 分钟)</span></div>
-            <div class="row"><span class="label">开始时间</span><span class="value">19:00</span></div>
-            <div class="row"><span class="label">结束时间</span><span class="value">21:30</span></div>
-          </div>
-        </li>
-        <li>行动：<span class="badge">显示提醒</span>（"该喝水啦 💧"）。</li>
-        <li>保存，启用自动化。</li>
-      </ol>
+    <h3>步骤</h3>
+    <ol class="steps">
+      <li>新建自动化，触发器选 <b>定时器 / 心跳</b>（每 1 分钟检查一次）。</li>
+      <li>进入规则集，添加规则 <b>「限频：时间段」</b>，按 <b>表 4</b> 填好字段。</li>
+      <li>添加行动：<b>显示提醒</b>（内容写"该喝水啦 💧"）。</li>
+      <li>保存，启用自动化。</li>
+    </ol>
 
-      <h3>效果</h3>
-      <p>✅ 19:00 提醒一次，30 分钟内不重复（即使心触发每分钟跳一次）。</p>
-      <p>✅ 19:30 再次提醒一次，然后 30 分钟内不再响。</p>
-      <p>✅ 21:30 之后进入"非时间段"，安静收工。</p>
+    <h3>效果</h3>
+    <p>✅ 19:00 提醒一次，30 分钟内不重复（即使心跳每分钟跳）。<br>
+       ✅ 19:30 再次提醒一次。<br>
+       ✅ 21:30 之后进入"非时间段"，安静收工。</p>
 
-      <div class="warn">
-        <b>⚠️ 重要：</b>限频规则只在它"放行"的时候记一次。<br>
-        如果你的自动化失败/取消了，<b>这条记录不会回滚</b>。
-        如果你希望"只有行动真执行了才算一次"，可以在末尾加一个"<b>记录限频执行</b>"行动，并关掉规则的自动记录。
-      </div>
+    <div class="note warn">
+      <div class="lbl">注意</div>
+      <p>限频规则只在它<b>放行</b>的时候记一次。如果你的行动失败/取消了，<b>这条记录不会回滚</b>。<br>如果你希望"只有行动真执行了才算一次"，可以在末尾加一个 <b>「记录限频执行」</b> 行动，并关掉规则的自动记录。</p>
     </div>
   </section>
 
-  <!-- 6. FAQ -->
-  <section id="faq">
-    <h2>6. 常见问题</h2>
+  <!-- 6 -->
+  <section>
+    <h2><span class="sec">§6</span>常见问题</h2>
 
-    <details>
-      <summary>我装上后怎么没看到规则？</summary>
-      <p>先确认 ClassIsland 已完全重启（不是最小化、是真的退出再打开）。然后去任一自动化的规则集编辑器里<b>右键 → 添加规则</b>，搜"限频"应该能看到三个。</p>
+    <details class="faq-item">
+      <summary class="faq-q">我装上后怎么没看到规则？</summary>
+      <div class="faq-a"><p>先确认 ClassIsland 已完全重启（不是最小化、是真的退出再打开）。然后去任一自动化的规则集编辑器里 <b>右键 → 添加规则</b>，搜"限频"应该能看到三个。</p></div>
     </details>
 
-    <details>
-      <summary>为什么我的规则不生效？</summary>
-      <p>常见原因：
-        <br>① 这条规则放在了规则的"或"分支下面 —— 改成放在"与"分支最稳。
-        <br>② 你的工作流没有挂这个规则（规则只对它所属的工作流生效）。
-        <br>③ 时间窗口设得太短，调大到 60 秒以上再试。
-        <br>④ 查看 ClassIsland 日志，搜"限频"会告诉你为什么没放行。
-      </p>
+    <details class="faq-item">
+      <summary class="faq-q">为什么我的规则不生效？</summary>
+      <div class="faq-a">
+        <p>常见原因：</p>
+        <p>① 这条规则放在了"或"分支下面 —— 改成放在"与"分支最稳。</p>
+        <p>② 你的工作流没有挂这个规则（规则只对它所属的工作流生效）。</p>
+        <p>③ 时间窗口设得太短，调大到 60 秒以上再试。</p>
+        <p>④ 查看 ClassIsland 日志，搜"限频"会告诉你为什么没放行。</p>
+      </div>
     </details>
 
-    <details>
-      <summary>窗口里的历史能清空吗？</summary>
-      <p>可以的。插件本身不提供"清空"按钮，但 ClassIsland 通用做法是关掉自动化 → 等几分钟（让历史自然过期） → 再开。窗口设得越大，等得越久。</p>
+    <details class="faq-item">
+      <summary class="faq-q">窗口里的历史能清空吗？</summary>
+      <div class="faq-a"><p>可以。插件本身不提供"清空"按钮，但 ClassIsland 通用做法是关掉自动化 → 等几分钟（让历史自然过期） → 再开。窗口设得越大，等得越久。</p></div>
     </details>
 
-    <details>
-      <summary>"记录限频执行"行动是干嘛的？</summary>
-      <p>普通模式：规则放行 → 立即记一次。
-        <br>"记录"模式：只有行动真执行完了才记一次。
-        <br>后者更精确（避免"规则过了但行动失败了"还占用名额），但配置稍麻烦。一般<b>用普通模式就够了</b>。
-      </p>
+    <details class="faq-item">
+      <summary class="faq-q">「记录限频执行」行动是干嘛的？</summary>
+      <div class="faq-a">
+        <p>普通模式：规则放行 → 立即记一次。</p>
+        <p>「记录」模式：只有行动真执行完了才记一次。</p>
+        <p>后者更精确（避免"规则过了但行动失败了"还占用名额），但配置稍麻烦。一般 <b>用普通模式就够了</b>。</p>
+      </div>
     </details>
 
-    <details>
-      <summary>会不会影响我电脑性能？</summary>
-      <p>完全不会。插件只在 ClassIsland 里跑，历史数据按工作流 GUID 存到本地 JSON，每秒最多被读/写几十次，占用可忽略。</p>
+    <details class="faq-item">
+      <summary class="faq-q">会不会影响电脑性能？</summary>
+      <div class="faq-a"><p>完全不会。插件只在 ClassIsland 里跑，历史数据按工作流 GUID 存到本地 JSON，每秒最多被读/写几十次，占用可忽略。</p></div>
     </details>
 
-    <details>
-      <summary>三个模式可以同时用吗？</summary>
-      <p>可以。在同一规则组的"与"分支里同时加"时间间隔"和"时间段"，那么"<b>晚自习每 30 分钟</b>"这种组合就出来了。</p>
+    <details class="faq-item">
+      <summary class="faq-q">三个模式可以同时用吗？</summary>
+      <div class="faq-a"><p>可以。在同一规则组的"与"分支里同时加"时间间隔"和"时间段"，那么"<b>晚自习每 30 分钟</b>"这种组合就出来了。</p></div>
     </details>
 
-    <details>
-      <summary>怎么反馈问题？</summary>
-      <p>去 GitHub 仓库的 <a href="https://github.com/ywydog/RateLimit/issues" target="_blank">Issues</a> 页面提，记得附上 ClassIsland 版本、插件版本和日志。</p>
+    <details class="faq-item">
+      <summary class="faq-q">怎么反馈问题？</summary>
+      <div class="faq-a"><p>去 GitHub 仓库的 <a href="https://github.com/ywydog/RateLimit/issues" style="color:var(--ink); border-bottom: 1px dotted var(--ink);">Issues</a> 页面提，记得附上 ClassIsland 版本、插件版本和日志。</p></div>
     </details>
   </section>
 
   <footer>
-    <p>📚 这份教程由 <a href="https://github.com/ywydog/RateLimit" target="_blank">ClassIsland.RateLimit</a> 项目生成 · 觉得有用欢迎去仓库点个 ⭐</p>
+    <div>ClassIsland 插件教程 · <em>第二期</em></div>
+    <div>第 05 号 · 限频规则 · <a href="https://github.com/ywydog/RateLimit">github.com/ywydog/RateLimit</a></div>
   </footer>
 
 </div>
