@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&family=VT323&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* —— Trae 主题色（参考 Dark+ / Dark Modern 配色）—— */
+    /* —— 暗色 IDE 主题色（五档深色 + 强调色）—— */
     --bg:        #171b26;   /* editor 背景 */
     --bg-2:      #1e2127;   /* 略亮一档，主内容区 */
     --bg-3:      #262a37;   /* activity / title bar */
@@ -20,7 +20,7 @@
     --text:      #c9d1d9;
     --text-dim:  #8b96a8;
     --text-faint:#5a6275;
-    /* —— Intelligent Green（Trae 2.0 主色）—— */
+    /* —— 主色：荧光绿（类似命令行 on dark）—— */
     --green:     #82D99F;
     --green-2:   #10B981;
     --green-bg:  rgba(130, 217, 159, 0.10);
@@ -38,6 +38,7 @@
     --mono: "Geist Mono", "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
     --pixel:"VT323", "Geist Mono", monospace;
   }
+
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; }
@@ -544,7 +545,16 @@
   <!-- 顶栏 -->
   <div class="titlebar">
     <div class="menu">
-      <div class="logo"><span class="dot"></span>TRAE</div>
+      <div class="logo" title="ClassIsland.RateLimit">
+        <svg width="14" height="14" viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true">
+          <rect x="1" y="1" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1"/>
+          <rect x="3" y="3" width="8" height="2" fill="currentColor"/>
+          <rect x="3" y="6" width="5" height="1" fill="currentColor"/>
+          <rect x="3" y="8" width="7" height="1" fill="currentColor"/>
+          <rect x="3" y="10" width="4" height="1" fill="currentColor"/>
+        </svg>
+        <span>RateLimit</span>
+      </div>
       <span>File</span><span>Edit</span><span>View</span><span>Run</span>
     </div>
     <div class="tabs">
@@ -578,7 +588,7 @@
     <div class="ic" title="Run & Debug">▶</div>
     <div class="ic" title="Extensions">◫</div>
     <div class="spacer"></div>
-    <div class="user" title="Pixel Pal">PP</div>
+    <div class="user" title="Account">U</div>
   </div>
 
   <!-- 侧边栏 -->
@@ -627,17 +637,13 @@
 
       <h1>
         <span>限频规则 · 5 分钟入门</span>
-        <!-- Pixel Pal：5×7 像素小机器人 -->
-        <svg class="robo" width="42" height="42" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true">
-          <rect x="2" y="0" width="3" height="1" fill="#82D99F"/>
-          <rect x="1" y="1" width="5" height="1" fill="#82D99F"/>
-          <rect x="0" y="2" width="7" height="3" fill="#82D99F"/>
-          <rect x="1" y="2" width="2" height="2" fill="#171b26" transform="rotate(45 2 3)"/>
-          <rect x="4" y="2" width="2" height="2" fill="#171b26" transform="rotate(45 5 3)"/>
-          <rect x="2" y="4" width="3" height="1" fill="#82D99F"/>
-          <rect x="0" y="5" width="7" height="1" fill="#10B981"/>
-          <rect x="1" y="6" width="1" height="1" fill="#82D99F"/>
-          <rect x="5" y="6" width="1" height="1" fill="#82D99F"/>
+        <!-- 项目标识：抽象的"频"字 / 节流符号 -->
+        <svg class="robo" width="42" height="42" viewBox="0 0 14 14" shape-rendering="crispEdges" aria-hidden="true">
+          <rect x="1" y="3" width="2" height="8" fill="#82D99F"/>
+          <rect x="1" y="3" width="12" height="2" fill="#82D99F"/>
+          <rect x="1" y="9" width="12" height="2" fill="#82D99F"/>
+          <rect x="11" y="3" width="2" height="8" fill="#10B981"/>
+          <rect x="5" y="6" width="4" height="2" fill="#82D99F"/>
         </svg>
       </h1>
       <p class="deck">让 ClassIsland 自动化"别太勤快"——限定一段时间内最多跑几次。三种模式 / 三张示例 / 七个问答。</p>
