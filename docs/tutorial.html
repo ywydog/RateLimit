@@ -87,15 +87,32 @@
   /* —— 章节 —— */
   section { margin-top: 56px; }
   h2 {
-    font-family: var(--mono); font-weight: 600;
-    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--text-dim);
-    margin: 0 0 16px;
-    padding-bottom: 10px;
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text);
+    margin: 64px 0 20px;
+    padding: 10px 14px 10px 0;
+    border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    display: flex; align-items: baseline; gap: 10px;
+    display: flex; align-items: center; gap: 14px;
   }
-  h2 .num { color: var(--green); }
+  h2 .num {
+    color: var(--green);
+    font-weight: 700;
+    font-size: 13px;
+    display: inline-block;
+    min-width: 44px;
+    padding: 3px 0;
+    background: var(--green-bg);
+    border: 1px solid var(--green-line);
+    border-radius: 3px;
+    text-align: center;
+    font-feature-settings: "tnum";
+    letter-spacing: 0.06em;
+  }
+  h2 .txt { color: var(--text); }
+  h2 .txt-zh { color: var(--text-dim); text-transform: none; letter-spacing: 0.04em; margin-left: 4px; font-family: var(--zh); }
   h3 {
     font-family: var(--zh); font-weight: 600; font-size: 18px;
     color: var(--text); margin: 32px 0 10px;
@@ -333,7 +350,7 @@
 
   <!-- §2 -->
   <section>
-    <h2><span class="num">§2</span>我能用它做什么</h2>
+    <h2><span class="num">§2</span><span class="txt-zh">我能用它做什么</span></h2>
     <p>下面是三个最常遇到的场景。具体字段含义见 <b>§4</b>。</p>
     <div class="scenes">
       <div class="scene a">
@@ -356,7 +373,7 @@
 
   <!-- §3 -->
   <section>
-    <h2><span class="num">§3</span>怎么装</h2>
+    <h2><span class="num">§3</span><span class="txt-zh">怎么装</span></h2>
     <ol class="steps">
       <li><div class="body">打开 <a href="https://github.com/ywydog/RateLimit/releases" target="_blank">GitHub Releases</a>，下载最新的 <code>ClassIsland.RateLimit.cipx</code> 文件。</div></li>
       <li><div class="body">打开 ClassIsland 主界面 → <b>设置</b> → <b>插件</b> → <b>安装本地插件</b>。</div></li>
@@ -462,7 +479,7 @@
 
   <!-- §6 -->
   <section>
-    <h2><span class="num">§6</span>常见问题</h2>
+    <h2><span class="num">§6</span><span class="txt-zh">常见问题</span></h2>
     <div class="faq">
       <details class="faq-item">
         <summary class="faq-q">装上后怎么没看到规则？<span class="ch">›</span></summary>
