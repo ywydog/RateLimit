@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ClassIsland 限频规则插件 · 5 分钟入门教程</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --ink: #1f2330;
+    --ink-soft: #5b6478;
+    --line: #e6e8ef;
+    --brand: #4a6cf7;
+    --brand-soft: #eef1ff;
+    --a: #16a34a;     /* 时间间隔 - 绿 */
+    --a-soft: #ecfdf3;
+    --b: #ea580c;     /* 时间点 - 橙 */
+    --b-soft: #fff4eb;
+    --c: #9333ea;     /* 时间段 - 紫 */
+    --c-soft: #f7eefe;
+    --warn: #d97706;
+    --shadow: 0 1px 2px rgba(20,24,40,.04), 0 6px 24px rgba(20,24,40,.06);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #4a6cf7 0%, #7c3aed 100%);
+    color: #fff; border-radius: 20px; padding: 48px 40px; box-shadow: var(--shadow);
+  }
+  .hero h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: 0.5px; }
+  .hero p { margin: 0; opacity: 0.9; font-size: 16px; }
+  .hero .tag {
+    display: inline-block; background: rgba(255,255,255,.18); padding: 4px 12px;
+    border-radius: 999px; font-size: 12px; margin-bottom: 16px; backdrop-filter: blur(6px);
+  }
+  .hero .meta { margin-top: 24px; font-size: 13px; opacity: 0.85; }
+
+  /* Section */
+  section { margin-top: 32px; }
+  h2 { font-size: 22px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--line); }
+  h3 { font-size: 17px; margin: 24px 0 8px; }
+  p { margin: 8px 0; color: var(--ink); }
+  .muted { color: var(--ink-soft); }
+  code, kbd {
+    font-family: ui-monospace, SFMono-Regular, "Cascadia Mono", Consolas, monospace;
+    font-size: 13px; background: #eef0f6; padding: 2px 6px; border-radius: 4px; color: #2d3348;
+  }
+  pre {
+    background: #1f2330; color: #e6e8ef; padding: 16px; border-radius: 10px; overflow-x: auto;
+    font-size: 13px; line-height: 1.6;
+  }
+  pre code { background: transparent; color: inherit; padding: 0; }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; box-shadow: var(--shadow); }
+  .grid { display: grid; gap: 16px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* Mode card */
+  .mode { border-top: 4px solid; }
+  .mode.a { border-color: var(--a); }
+  .mode.b { border-color: var(--b); }
+  .mode.c { border-color: var(--c); }
+  .mode .pill { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 999px; margin-bottom: 6px; }
+  .mode.a .pill { background: var(--a-soft); color: var(--a); }
+  .mode.b .pill { background: var(--b-soft); color: var(--b); }
+  .mode.c .pill { background: var(--c-soft); color: var(--c); }
+  .mode h3 { margin-top: 4px; }
+  .mode .icon { font-size: 24px; vertical-align: middle; margin-right: 6px; }
+
+  /* Steps */
+  .steps { counter-reset: step; list-style: none; padding: 0; }
+  .steps li {
+    counter-increment: step; position: relative; padding: 14px 16px 14px 56px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 10px;
+  }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 16px; top: 14px;
+    width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%;
+    background: var(--brand); color: #fff; font-weight: 600; font-size: 14px;
+  }
+  .steps li b { color: var(--ink); }
+
+  /* Mockup */
+  .mockup {
+    background: #1f2330; color: #d9dcec; border-radius: 12px; padding: 14px 18px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px;
+    border: 1px solid #2a2f44;
+  }
+  .mockup .row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #2a2f44; }
+  .mockup .row:last-child { border-bottom: 0; }
+  .mockup .label { color: #8a93b2; }
+  .mockup .value { color: #c7d0ff; }
+  .mockup .pill-mini { background: #2a2f44; color: #c7d0ff; padding: 0 8px; border-radius: 999px; font-size: 12px; }
+  .badge { display: inline-block; background: var(--brand-soft); color: var(--brand); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+
+  /* Scenario */
+  .scenario { background: linear-gradient(135deg, #fff 0%, #fafbff 100%); }
+  .scenario h3 { margin-top: 0; }
+  .scenario .quote { color: var(--ink-soft); font-style: italic; border-left: 3px solid var(--brand); padding-left: 12px; margin: 8px 0; }
+
+  /* Tips */
+  .tip { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 8px; margin: 12px 0; }
+  .tip b { color: #b45309; }
+  .warn { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 8px; margin: 12px 0; }
+  .warn b { color: #b91c1c; }
+
+  /* FAQ */
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 8px; }
+  details[open] { box-shadow: var(--shadow); }
+  details summary { cursor: pointer; font-weight: 600; }
+  details[open] summary { margin-bottom: 8px; }
+  details p { margin: 6px 0; color: var(--ink-soft); }
+
+  /* TOC */
+  .toc { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; }
+  .toc h3 { margin-top: 0; }
+  .toc ol { margin: 0; padding-left: 20px; }
+  .toc a { color: var(--brand); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Footer */
+  footer { margin-top: 48px; text-align: center; color: var(--ink-soft); font-size: 13px; }
+  footer a { color: var(--brand); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="tag">ClassIsland 插件教程</div>
+    <h1>限频规则插件 · 5 分钟入门</h1>
+    <p>让你的 ClassIsland 自动化"别太勤快"——每条规则都用大白话讲清楚，看完就能用。</p>
+    <div class="meta">📦 版本 1.0.0 &nbsp;·&nbsp; 🎯 适用于 ClassIsland 2.x &nbsp;·&nbsp; ⏱ 阅读约 5 分钟</div>
+  </div>
+
+  <!-- TOC -->
+  <section>
+    <div class="toc">
+      <h3>本文目录</h3>
+      <ol>
+        <li><a href="#what">这是什么？</a></li>
+        <li><a href="#scenes">我能用它做什么？</a></li>
+        <li><a href="#install">怎么装？</a></li>
+        <li><a href="#modes">三种规则怎么选？</a></li>
+        <li><a href="#examples">举个栗子 🌰</a></li>
+        <li><a href="#faq">常见问题</a></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 1. What -->
+  <section id="what">
+    <h2>1. 这是什么？</h2>
+    <div class="card">
+      <p>装上这个插件后，你可以在自动化里加一种叫 <b>"限频规则"</b> 的东西。</p>
+      <p>它的作用很简单：</p>
+      <p style="text-align:center; font-size:17px; margin: 18px 0;">
+        🛑 <b>告诉 ClassIsland：「这个自动化别跑太勤，限定时间内最多跑几次」</b>
+      </p>
+      <p>比如上课铃自动化每节课响一次，本来挺好的。但万一你的触发器很敏感，<b>一节课它响 5、6 次</b>，就尴尬了。</p>
+      <p>加了限频规则后，你可以告诉它：<b>"1 节课最多响 2 次"</b>。超了就不响了，下次条件触发再说。</p>
+    </div>
+  </section>
+
+  <!-- 2. Scenes -->
+  <section id="scenes">
+    <h2>2. 我能用它做什么？</h2>
+    <div class="grid grid-2">
+      <div class="card scenario">
+        <h3>🔔 上课铃别太勤</h3>
+        <div class="quote">"上课事件已经触发了，<b>45 分钟内最多响 1 次</b>"</div>
+        <p class="muted">用 <b>时间间隔</b> 模式，触发间隔 45 分钟。</p>
+      </div>
+      <div class="card scenario">
+        <h3>⏰ 整点提醒</h3>
+        <div class="quote">"8:00 / 12:00 / 18:00 整点提醒吃饭，<b>1 小时内最多 1 次</b>"</div>
+        <p class="muted">用 <b>时间点</b> 模式，时间点 <code>08:00,12:00,18:00</code>。</p>
+      </div>
+      <div class="card scenario">
+        <h3>📚 晚自习播报</h3>
+        <div class="quote">"19:00 - 21:30 内最多播报 5 次"</div>
+        <p class="muted">用 <b>时间段</b> 模式，开始 19:00、结束 21:30。</p>
+      </div>
+      <div class="card scenario">
+        <h3>🪟 下课自动开窗</h3>
+        <div class="quote">"下课事件触发后，<b>5 分钟内最多开 1 次窗</b>"</div>
+        <p class="muted">用 <b>时间间隔</b> 模式，触发间隔 5 分钟。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Install -->
+  <section id="install">
+    <h2>3. 怎么装？</h2>
+    <ol class="steps">
+      <li>打开 <b>GitHub Releases 页面</b>：
+        <a href="https://github.com/ywydog/RateLimit/releases" target="_blank">https://github.com/ywydog/RateLimit/releases</a>
+        下载最新的 <code>ClassIsland.RateLimit.cipx</code> 文件。
+      </li>
+      <li>打开 ClassIsland 主界面 → <b>设置</b> → <b>插件</b> → <b>安装本地插件</b>。</li>
+      <li>选择刚才下载的 <code>.cipx</code> 文件，<b>重启 ClassIsland</b>。</li>
+      <li>打开任一自动化的 <b>规则集</b> 编辑，右键 → 添加规则 → 你能看到三种带"限频"字样的规则。</li>
+    </ol>
+    <div class="tip">
+      <b>💡 小贴士：</b>如果你不熟悉 ClassIsland 的规则集怎么用，先去 ClassIsland 官方文档了解下基础概念会更顺。
+    </div>
+  </section>
+
+  <!-- 4. Modes -->
+  <section id="modes">
+    <h2>4. 三种规则怎么选？</h2>
+    <p>三种模式各有各的"专长"，先用一张表对比一下：</p>
+
+    <div class="grid grid-3" style="margin-top: 16px;">
+      <div class="card mode a">
+        <div class="pill">模式 A</div>
+        <h3><span class="icon">⏱️</span>时间间隔</h3>
+        <p class="muted">每隔一段时间最多跑一次。</p>
+        <p style="margin-top: 8px;"><b>适合：</b>事件触发很频繁、又怕重复响的场景。</p>
+      </div>
+      <div class="card mode b">
+        <div class="pill">模式 B</div>
+        <h3><span class="icon">📍</span>时间点</h3>
+        <p class="muted">只在固定时刻（08:00、12:00…）生效。</p>
+        <p style="margin-top: 8px;"><b>适合：</b>整点打卡、定时播报。</p>
+      </div>
+      <div class="card mode c">
+        <div class="pill">模式 C</div>
+        <h3><span class="icon">🌙</span>时间段</h3>
+        <p class="muted">每天某个时段内才生效（支持跨夜）。</p>
+        <p style="margin-top: 8px;"><b>适合：</b>晚自习、上班时间、熄灯前。</p>
+      </div>
+    </div>
+
+    <h3>模式 A · 时间间隔 —— 详细配置</h3>
+    <div class="card">
+      <p>每条规则都有<b>两个公共字段</b> + <b>一个专属字段</b>：</p>
+      <div class="mockup">
+        <div class="row"><span class="label">最大次数</span><span class="value">3 次（窗口内最多跑几次）</span></div>
+        <div class="row"><span class="label">时间窗口</span><span class="value">600 秒（统计最近 10 分钟）</span></div>
+        <div class="row"><span class="label">触发间隔</span><span class="value">60 秒（距上次执行 ≥ 60s 才放行）</span></div>
+      </div>
+      <p style="margin-top: 12px;">例子：想让"下课响铃" <b>5 分钟内最多 1 次</b>，就这样填：</p>
+      <div class="mockup">
+        <div class="row"><span class="label">最大次数</span><span class="value">1</span></div>
+        <div class="row"><span class="label">时间窗口</span><span class="value">300 秒</span></div>
+        <div class="row"><span class="label">触发间隔</span><span class="value">300 秒</span></div>
+      </div>
+      <p class="muted" style="margin-top: 8px;">→ 效果：每次下课事件触发，先看过去 5 分钟有没有响过；有就跳过、没有才响。</p>
+    </div>
+
+    <h3>模式 B · 时间点 —— 详细配置</h3>
+    <div class="card">
+      <p>把要触发的<b>时刻</b>写进一个列表，多个用<b>英文逗号</b>分隔：</p>
+      <div class="mockup">
+        <div class="row"><span class="label">最大次数</span><span class="value">2 次（同一时刻段最多响 2 次）</span></div>
+        <div class="row"><span class="label">时间窗口</span><span class="value">60 秒</span></div>
+        <div class="row"><span class="label">时间点</span><span class="value">08:00,12:00,18:00</span></div>
+      </div>
+      <p class="muted" style="margin-top: 8px;">→ 效果：只在 8:00、12:00、18:00 这 3 个时刻的 ± 1 分钟内放行；其他时间一律不响。</p>
+      <div class="tip">
+        <b>📝 时间格式：</b>必须是 <code>HH:mm</code>，比如 <code>08:00</code>、<code>21:30</code>。不写秒。
+      </div>
+    </div>
+
+    <h3>模式 C · 时间段 —— 详细配置</h3>
+    <div class="card">
+      <p>直接用时间选择器选开始/结束：</p>
+      <div class="mockup">
+        <div class="row"><span class="label">最大次数</span><span class="value">5 次（整个晚自习最多 5 次）</span></div>
+        <div class="row"><span class="label">时间窗口</span><span class="value">9000 秒（覆盖 2.5 小时）</span></div>
+        <div class="row"><span class="label">开始时间</span><span class="value">19:00</span></div>
+        <div class="row"><span class="label">结束时间</span><span class="value">21:30</span></div>
+      </div>
+      <p class="muted" style="margin-top: 8px;">→ 效果：只在 19:00 ~ 21:30 之间放行；最多 5 次。</p>
+
+      <div class="tip">
+        <b>🌙 跨夜写法：</b>想让"熄灯提醒"在 <b>22:00 到次日 06:00</b> 生效？
+        直接填 <b>开始 22:00、结束 06:00</b>，插件会自动识别为跨夜区间。
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Examples -->
+  <section id="examples">
+    <h2>5. 举个完整的栗子 🌰</h2>
+    <p>假设你想做一个"晚自习提醒喝水"的自动化：</p>
+
+    <div class="card">
+      <h3>目标</h3>
+      <p>晚自习 19:00 ~ 21:30 内，每 <b>30 分钟</b>最多提醒喝水 <b>1 次</b>。</p>
+
+      <h3>步骤</h3>
+      <ol>
+        <li>新建自动化，触发器选"<b>定时器 / 心跳</b>"（每 1 分钟检查一次）。</li>
+        <li>进入规则集，添加规则：<span class="badge">限频：时间段</span>。
+          <div class="mockup" style="margin-top: 8px;">
+            <div class="row"><span class="label">最大次数</span><span class="value">1</span></div>
+            <div class="row"><span class="label">时间窗口</span><span class="value">1800 秒 (30 分钟)</span></div>
+            <div class="row"><span class="label">开始时间</span><span class="value">19:00</span></div>
+            <div class="row"><span class="label">结束时间</span><span class="value">21:30</span></div>
+          </div>
+        </li>
+        <li>行动：<span class="badge">显示提醒</span>（"该喝水啦 💧"）。</li>
+        <li>保存，启用自动化。</li>
+      </ol>
+
+      <h3>效果</h3>
+      <p>✅ 19:00 提醒一次，30 分钟内不重复（即使心触发每分钟跳一次）。</p>
+      <p>✅ 19:30 再次提醒一次，然后 30 分钟内不再响。</p>
+      <p>✅ 21:30 之后进入"非时间段"，安静收工。</p>
+
+      <div class="warn">
+        <b>⚠️ 重要：</b>限频规则只在它"放行"的时候记一次。<br>
+        如果你的自动化失败/取消了，<b>这条记录不会回滚</b>。
+        如果你希望"只有行动真执行了才算一次"，可以在末尾加一个"<b>记录限频执行</b>"行动，并关掉规则的自动记录。
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. FAQ -->
+  <section id="faq">
+    <h2>6. 常见问题</h2>
+
+    <details>
+      <summary>我装上后怎么没看到规则？</summary>
+      <p>先确认 ClassIsland 已完全重启（不是最小化、是真的退出再打开）。然后去任一自动化的规则集编辑器里<b>右键 → 添加规则</b>，搜"限频"应该能看到三个。</p>
+    </details>
+
+    <details>
+      <summary>为什么我的规则不生效？</summary>
+      <p>常见原因：
+        <br>① 这条规则放在了规则的"或"分支下面 —— 改成放在"与"分支最稳。
+        <br>② 你的工作流没有挂这个规则（规则只对它所属的工作流生效）。
+        <br>③ 时间窗口设得太短，调大到 60 秒以上再试。
+        <br>④ 查看 ClassIsland 日志，搜"限频"会告诉你为什么没放行。
+      </p>
+    </details>
+
+    <details>
+      <summary>窗口里的历史能清空吗？</summary>
+      <p>可以的。插件本身不提供"清空"按钮，但 ClassIsland 通用做法是关掉自动化 → 等几分钟（让历史自然过期） → 再开。窗口设得越大，等得越久。</p>
+    </details>
+
+    <details>
+      <summary>"记录限频执行"行动是干嘛的？</summary>
+      <p>普通模式：规则放行 → 立即记一次。
+        <br>"记录"模式：只有行动真执行完了才记一次。
+        <br>后者更精确（避免"规则过了但行动失败了"还占用名额），但配置稍麻烦。一般<b>用普通模式就够了</b>。
+      </p>
+    </details>
+
+    <details>
+      <summary>会不会影响我电脑性能？</summary>
+      <p>完全不会。插件只在 ClassIsland 里跑，历史数据按工作流 GUID 存到本地 JSON，每秒最多被读/写几十次，占用可忽略。</p>
+    </details>
+
+    <details>
+      <summary>三个模式可以同时用吗？</summary>
+      <p>可以。在同一规则组的"与"分支里同时加"时间间隔"和"时间段"，那么"<b>晚自习每 30 分钟</b>"这种组合就出来了。</p>
+    </details>
+
+    <details>
+      <summary>怎么反馈问题？</summary>
+      <p>去 GitHub 仓库的 <a href="https://github.com/ywydog/RateLimit/issues" target="_blank">Issues</a> 页面提，记得附上 ClassIsland 版本、插件版本和日志。</p>
+    </details>
+  </section>
+
+  <footer>
+    <p>📚 这份教程由 <a href="https://github.com/ywydog/RateLimit" target="_blank">ClassIsland.RateLimit</a> 项目生成 · 觉得有用欢迎去仓库点个 ⭐</p>
+  </footer>
+
+</div>
+</body>
+</html>
