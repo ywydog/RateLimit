@@ -26,6 +26,15 @@ public partial class TimePointRateLimitSettings : RateLimitBaseSettings
 
     internal override string ModeName => "时间点";
 
+    public override bool Equals(object? obj)
+    {
+        return base.Equals(obj)
+            && obj is TimePointRateLimitSettings other
+            && other.TimePoints == TimePoints;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), TimePoints);
+
     private static List<int> ParseTimePoints(string text)
     {
         var result = new List<int>();

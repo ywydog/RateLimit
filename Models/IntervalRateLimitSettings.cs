@@ -24,4 +24,13 @@ public partial class IntervalRateLimitSettings : RateLimitBaseSettings
     }
 
     internal override string ModeName => "时间间隔";
+
+    public override bool Equals(object? obj)
+    {
+        return base.Equals(obj)
+            && obj is IntervalRateLimitSettings other
+            && other.IntervalSeconds == IntervalSeconds;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), IntervalSeconds);
 }

@@ -131,14 +131,24 @@ public class RateLimitService : IRateLimitService
     /// <remarks>
     /// 关键修正：未命中时**不缓存**，允许下次重试。否则一旦首次调用时集合尚未初始化，
     /// 会永远返回 <see cref="Guid.Empty"/>。
+    ///
+    /// 关于 <see cref="JsonElement"/>：
+    /// ClassIsland 从 JSON 冷加载时，Rule.Settings 是原始 <see cref="JsonElement"/>，
+    /// 而每次规则评估都会用 <see cref="JsonElement.Deserialize"/> 反序列化出**全新实例**传给 handler，
+    /// 失去引用同一性。因此仅靠 <see cref="ReferenceEquals"/> 反查会在冷启动后一直失效。
+    /// 处理分两层：
+    /// 1. 身份快路径：settings 已是强类型（用户编辑过或被本方法规范化过），直接引用比对；
+    /// 2. 值匹配兜底：对带本插件规则 ID 且 Settings 仍是 JsonElement 的规则做结构比对，
+    ///    命中后**就地写回强类型实例**（rule.Settings = normalized），
+    ///    此后 IsRuleSatisfied 会直接复用该实例，后续评估走身份快路径。
     /// </remarks>
-    private Guid ResolveWorkflowId(RateLimitBaseSettings settings)
+    private Guid ResolveWorkflowId(RateLimitBaseSettings target)
     {
-        if (settings.CachedWorkflowId is { } cached)
+        if (target.CachedWorkflowId is { } cached)
         {
             _logger.LogTrace(
                 "ResolveWorkflowId 命中缓存：模式={Mode}，工作流={WorkflowId}",
-                settings.ModeName, cached);
+                target.ModeName, cached);
             return cached;
         }
 
@@ -154,23 +164,32 @@ public class RateLimitService : IRateLimitService
             return Guid.Empty;
         }
 
+        // 1. 身份快路径：Settings 已是强类型实例
         foreach (var wf in workflows)
         {
             if (ReferenceEquals(wf.Ruleset, null)) continue;
-            if (ContainsSettings(wf, settings))
+            if (ContainsSettings(wf, target))
             {
-                settings.CachedWorkflowId = wf.ActionSet.Guid;
+                target.CachedWorkflowId = wf.ActionSet.Guid;
                 _logger.LogDebug(
-                    "ResolveWorkflowId 扫描命中：模式={Mode}，工作流={WorkflowId}（共扫 {Scanned} 个工作流）",
-                    settings.ModeName, wf.ActionSet.Guid, workflows.Length);
+                    "ResolveWorkflowId 身份匹配命中：模式={Mode}，工作流={WorkflowId}（共扫 {Scanned} 个工作流）",
+                    target.ModeName, wf.ActionSet.Guid, workflows.Length);
                 return wf.ActionSet.Guid;
             }
+        }
+
+        // 2. 值匹配兜底：冷启动 JsonElement 形态，就地规范化后建立身份
+        foreach (var wf in workflows)
+        {
+            if (ReferenceEquals(wf.Ruleset, null)) continue;
+            var workflowId = TryNormalizeAndMatch(wf, target);
+            if (workflowId != null) return workflowId.Value;
         }
 
         // 未命中：不缓存，下次重试
         _logger.LogDebug(
             "ResolveWorkflowId 扫描未命中：模式={Mode}（共扫 {Scanned} 个工作流），下次重试。",
-            settings.ModeName, workflows.Length);
+            target.ModeName, workflows.Length);
         return Guid.Empty;
     }
 
@@ -183,6 +202,56 @@ public class RateLimitService : IRateLimitService
         }
         return false;
     }
+
+    /// <summary>
+    /// 值匹配兜底：对本插件规则的 JsonElement 形态设置做结构比对。
+    /// 命中后把强类型实例写回 rule.Settings（就地规范化），并在两处实例上都写入缓存，
+    /// 使后续评估直接命中身份快路径。
+    /// </summary>
+    private Guid? TryNormalizeAndMatch(Workflow wf, RateLimitBaseSettings target)
+    {
+        foreach (var group in wf.Ruleset.Groups)
+        foreach (var rule in group.Rules)
+        {
+            var settingsType = GetSettingsTypeForRuleId(rule.Id);
+            if (settingsType is null) continue;
+            if (rule.Settings is not JsonElement json) continue;
+
+            RateLimitBaseSettings? normalized;
+            try
+            {
+                // 按规则 ID 映射到自身类型反序列化，避免跨类型默认值误配
+                normalized = json.Deserialize(settingsType) as RateLimitBaseSettings;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTrace(ex, "反序列化 rule.Settings 失败，跳过值比对。RuleId={RuleId}", rule.Id);
+                continue;
+            }
+            if (normalized is null || !normalized.Equals(target)) continue;
+
+            // 值匹配命中 → 就地规范化，建立后续身份匹配的同一性
+            rule.Settings = normalized;
+            normalized.CachedWorkflowId = wf.ActionSet.Guid;
+            target.CachedWorkflowId = wf.ActionSet.Guid;
+            _logger.LogInformation(
+                "ResolveWorkflowId 值匹配兜底命中：模式={Mode}，工作流={WorkflowId}，已就地规范化 rule.Settings。",
+                target.ModeName, wf.ActionSet.Guid);
+            return wf.ActionSet.Guid;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 规则 ID → 设置类型 映射。非本插件规则返回 null。
+    /// </summary>
+    private static Type? GetSettingsTypeForRuleId(string? ruleId) => ruleId switch
+    {
+        Plugin.IntervalRuleId => typeof(IntervalRateLimitSettings),
+        Plugin.TimePointRuleId => typeof(TimePointRateLimitSettings),
+        Plugin.TimeRangeRuleId => typeof(TimeRangeRateLimitSettings),
+        _ => null
+    };
 
     // ---------- 持久化 ----------
 

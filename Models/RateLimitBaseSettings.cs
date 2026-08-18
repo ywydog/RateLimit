@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using ClassIsland.RateLimit.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -41,4 +42,19 @@ public abstract partial class RateLimitBaseSettings : ObservableObject
     /// 人类可读的模式名（日志/调试用）。如"时间间隔"、"时间点"、"时间段"。
     /// </summary>
     internal abstract string ModeName { get; }
+
+    /// <summary>
+    /// 结构相等：用于冷启动时把 <see cref="JsonElement"/> 形态的 rule.Settings
+    /// 与本实例做值比对，从而在失去引用同一性（每次评估都会反序列化出新实例）的情况下仍能定位所属工作流。
+    /// 派生类必须在 <see cref="Equals(object?)"/> 中叠加各自特有字段。
+    /// </summary>
+    public override bool Equals(object? obj)
+    {
+        return obj is RateLimitBaseSettings other
+            && other.GetType() == GetType()
+            && other.MaxCount == MaxCount
+            && other.WindowSeconds == WindowSeconds;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(GetType(), MaxCount, WindowSeconds);
 }

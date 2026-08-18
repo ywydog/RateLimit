@@ -52,4 +52,14 @@ public partial class TimeRangeRateLimitSettings : RateLimitBaseSettings
     }
 
     internal override string ModeName => "时间段";
+
+    public override bool Equals(object? obj)
+    {
+        return base.Equals(obj)
+            && obj is TimeRangeRateLimitSettings other
+            && other.TimeRangeStart == TimeRangeStart
+            && other.TimeRangeEnd == TimeRangeEnd;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), TimeRangeStart, TimeRangeEnd);
 }
