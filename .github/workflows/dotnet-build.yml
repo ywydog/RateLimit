@@ -3,7 +3,7 @@ name: Build Project
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, new/for2.2 ]
   pull_request:
     branches: [ main ]
 
@@ -14,10 +14,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
+
+      - name: Install ClassIsland.PluginSdk.Cli
+        run: dotnet tool install --global ClassIsland.PluginSdk.Cli
+
+      - name: Verify 2.2 migration (dry-run)
+        shell: powershell
+        run: |
+          $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
+          cipx migrate --dry-run; if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 2) { exit 0 } else { exit $LASTEXITCODE }
 
       - name: Restore dependencies
         run: dotnet restore

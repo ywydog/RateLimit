@@ -180,12 +180,12 @@ public partial class AppSettingsRuleSettingsControl : RuleSettingsControlBase<Ap
     {
         var panel = PropertyPickerPanel;
         panel.DataContext = this;
-        var dialog = new ContentDialog
+        var dialog = new FAContentDialog
         {
             Content = panel,
             Title = "选择应用设置",
             PrimaryButtonText = "确定",
-            DefaultButton = ContentDialogButton.Primary,
+            DefaultButton = FAContentDialogButton.Primary,
         };
         await dialog.ShowAsync(TopLevel.GetTopLevel(this));
     }

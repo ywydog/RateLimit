@@ -25,7 +25,7 @@
                 <TextBox x:Name="PropertyPickerSearchBox"
                          Grid.Row="1"
                          TextChanged="SearchTextBox_OnTextChanged"
-                         Watermark="搜索应用设置…" />
+                         PlaceholderText="搜索应用设置…" />
                 <ListBox Grid.Row="2"
                          Margin="0 8 0 0"
                          AutoScrollToSelectedItem="True"
@@ -63,13 +63,13 @@
                               IsChecked="{Binding #This.ViewModel.InputValue}" />
             </DataTemplate>
             <DataTemplate x:Key=".int">
-                <controls:NumberBox VerticalAlignment="Center"
+                <controls:FANumberBox VerticalAlignment="Center"
                                     MinWidth="147"
                                     SpinButtonPlacementMode="Inline"
                                     Value="{Binding #This.ViewModel.InputValue}" />
             </DataTemplate>
             <DataTemplate x:Key=".double">
-                <controls:NumberBox VerticalAlignment="Center"
+                <controls:FANumberBox VerticalAlignment="Center"
                                     MinWidth="147"
                                     SpinButtonPlacementMode="Inline"
                                     Value="{Binding #This.ViewModel.InputValue, Converter={x:Static ci:NotNaNConverter.Instance}}" />

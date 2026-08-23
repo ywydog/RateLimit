@@ -17,7 +17,7 @@
         <ci:IconText Glyph="&#xE916;" Text="限频：时间点" />
 
         <ci:Field Label="最大次数">
-            <controls:NumberBox VerticalAlignment="Center"
+            <controls:FANumberBox VerticalAlignment="Center"
                                 MinWidth="147"
                                 SpinButtonPlacementMode="Inline"
                                 Minimum="1"
@@ -26,7 +26,7 @@
         </ci:Field>
 
         <ci:Field Label="时间窗口" Suffix="秒">
-            <controls:NumberBox VerticalAlignment="Center"
+            <controls:FANumberBox VerticalAlignment="Center"
                                 MinWidth="147"
                                 SpinButtonPlacementMode="Inline"
                                 Minimum="1"
