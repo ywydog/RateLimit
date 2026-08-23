@@ -10,6 +10,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using ClassIsland.Core;
+using ClassIsland.Core.Abstractions.Controls;
 using ClassIsland.RateLimit.Models;
 using ClassIsland.RateLimit.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
