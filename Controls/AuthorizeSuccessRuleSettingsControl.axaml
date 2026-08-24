@@ -1,0 +1,26 @@
+<ci:RuleSettingsControlBase x:TypeArguments="settings:AuthorizeSuccessRuleSettings"
+    x:Class="ClassIsland.RateLimit.Controls.AuthorizeSuccessRuleSettingsControl"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ClassIsland.RateLimit.Controls"
+    xmlns:ci="http://classisland.tech/schemas/xaml/core"
+    xmlns:settings="clr-namespace:ClassIsland.RateLimit.Models"
+    mc:Ignorable="d"
+    d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:AuthorizeSuccessRuleSettingsControl}}"
+                Classes="settings-container"
+                Spacing="8">
+
+        <ci:IconText Glyph="&#xE77B;" Text="当身份认证成功时" />
+
+        <ci:Field Label="认证凭据">
+            <ci:CredentialEditControl CredentialString="{Binding Settings.CredentialString, Mode=TwoWay}" />
+        </ci:Field>
+
+        <TextBlock Classes="l-instructive"
+                   TextWrapping="Wrap"
+                   Text="设置认证凭据后，当工作流评估本规则时会弹出认证窗口，只有输入匹配的凭据后规则才满足。未配置凭据时规则恒不满足。" />
+    </StackPanel>
+</ci:RuleSettingsControlBase>

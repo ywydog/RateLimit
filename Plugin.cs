@@ -25,6 +25,7 @@ public class Plugin : PluginBase
     public const string TimeRangeRuleId = PluginId + ".timeRange";
     public const string RecordActionId = PluginId + ".record";
     public const string AppSettingsRuleId = PluginId + ".appSettings";
+    public const string AuthorizeSuccessRuleId = PluginId + ".authorizeSuccess";
 
     private ILogger<Plugin>? _logger;
 
@@ -51,15 +52,20 @@ public class Plugin : PluginBase
         services.AddRule<AppSettingsRuleSettings, AppSettingsRuleSettingsControl>(
             AppSettingsRuleId, "应用设置为", "\uE713");
 
+        // 2.6 注册"当身份认证成功时"规则
+        services.AddRule<AuthorizeSuccessRuleSettings, AuthorizeSuccessRuleSettingsControl>(
+            AuthorizeSuccessRuleId, "当身份认证成功时", "\uE77B");
+
         // 3. 注册"记录限频执行"行动
         services.AddAction<RateLimitRecordAction, RateLimitRecordActionSettingsControl>();
 
         // 4. 启动时把规则 Handle 挂到 IRulesetService
         services.AddHostedService<RateLimitRuleRegistrar>();
         services.AddHostedService<AppSettingsRuleRegistrar>();
+        services.AddHostedService<AuthorizeSuccessRuleRegistrar>();
 
         _logger?.LogInformation(
-            "ClassIsland.RateLimit 插件初始化完成：已注册 3 条规则（{Interval} / {TimePoint} / {TimeRange}）、1 条规则（{AppSettings}）与 1 个行动（{Record}）",
-            IntervalRuleId, TimePointRuleId, TimeRangeRuleId, AppSettingsRuleId, RecordActionId);
+            "ClassIsland.RateLimit 插件初始化完成：已注册 {RuleCount} 条规则（{Interval} / {TimePoint} / {TimeRange} / {AppSettings} / {AuthorizeSuccess}）与 1 个行动（{Record}）",
+            "5", IntervalRuleId, TimePointRuleId, TimeRangeRuleId, AppSettingsRuleId, AuthorizeSuccessRuleId, RecordActionId);
     }
 }
